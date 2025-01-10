@@ -1,8 +1,9 @@
 class GitHubService {
   constructor() {
-    this.defaultRepo = 'test-repo';
-    this.defaultOwner = 'AIWhisper';
-    this.defaultBranch = 'main';
+    this.config = require('./github-agent-config.json');
+    this.defaultRepo = this.config.defaultRepo;
+    this.defaultOwner = this.config.defaultOwner;
+    this.defaultBranch = this.config.defaultBranch;
   }
 
   async pushFile(filename, content, message = 'Update file') {
@@ -10,37 +11,53 @@ class GitHubService {
   }
 
   async pushFiles(files, message) {
-    try {
-      const result = await this._callGitHub('push_files', {
+    return await this._withRetry(async () => {
+      const params = {
         repo: this.defaultRepo,
         owner: this.defaultOwner,
         branch: this.defaultBranch,
         files: files,
         message: message
-      });
-      return { success: true, data: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+      };
+      return await this._callGitHub('push_files', params);
+    });
   }
 
   async getFile(filename) {
-    try {
-      const result = await this._callGitHub('get_file_contents', {
+    return await this._withRetry(async () => {
+      const params = {
         path: filename,
         repo: this.defaultRepo,
         owner: this.defaultOwner
-      });
-      return { success: true, data: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+      };
+      return await this._callGitHub('get_file_contents', params);
+    });
   }
 
-  // Placeholder for actual GitHub API call
+  async _withRetry(operation) {
+    let lastError;
+    for (let attempt = 1; attempt <= this.config.errorHandling.maxRetries; attempt++) {
+      try {
+        const result = await operation();
+        return { success: true, data: result };
+      } catch (error) {
+        lastError = error;
+        if (attempt < this.config.errorHandling.maxRetries) {
+          await new Promise(resolve => 
+            setTimeout(resolve, this.config.errorHandling.retryDelay * attempt)
+          );
+        }
+      }
+    }
+    return { success: false, error: lastError.message };
+  }
+
   async _callGitHub(functionName, params) {
-    // This would be replaced with actual implementation
-    console.log(`Calling ${functionName} with params:`, params);
+    // Direct call to GitHub API functions
+    if (typeof window[functionName] === 'function') {
+      return await window[functionName](params);
+    }
+    throw new Error(`GitHub function ${functionName} not available`);
   }
 }
 

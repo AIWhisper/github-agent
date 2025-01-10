@@ -1,0 +1,16 @@
+{
+  "name": "GitHub Agent",
+  "version": "1.0.0",
+  "defaultRepo": "test-repo",
+  "defaultOwner": "AIWhisper",
+  "defaultBranch": "main",
+  "permissions": {
+    "canPush": true,
+    "canDelete": false,
+    "canCreateRepos": false
+  },
+  "errorHandling": {
+    "maxRetries": 3,
+    "retryDelay": 1000
+  }
+}

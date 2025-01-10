@@ -1,11 +1,16 @@
 class ClaudeGitHubParser {
   constructor() {
     this.commandRegex = /^(?:github|gh)\s+(\w+)(?:\s+(.*))?$/i;
+    this.config = {
+      owner: 'AIWhisper',
+      repo: 'github-agent',
+      branch: 'main'
+    };
   }
 
   async parseAndExecute(input) {
     const match = input.match(this.commandRegex);
-    if (!match) return null;
+    if (!match) return { success: false, error: 'Not a valid GitHub command' };
 
     const [, command, args = ''] = match;
     
@@ -18,7 +23,7 @@ class ClaudeGitHubParser {
         case 'status':
           return await this.executeStatus();
         default:
-          return { success: false, error: 'Unknown command' };
+          return { success: false, error: `Unknown command: ${command}` };
       }
     } catch (error) {
       return { success: false, error: error.message };
@@ -26,48 +31,65 @@ class ClaudeGitHubParser {
   }
 
   async executeRead(filename) {
-    if (!filename) return { success: false, error: 'Filename required' };
-    
-    const response = await get_file_contents({
-      owner: 'AIWhisper',
-      repo: 'github-agent',
-      path: filename
-    });
-
-    if (response && response.content) {
-      const content = atob(response.content);
-      return { success: true, data: content };
+    if (!filename) {
+      return { success: false, error: 'Filename required' };
     }
-    return { success: false, error: 'Could not read file content' };
+
+    try {
+      const response = await get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: filename
+      });
+
+      if (!response?.content) {
+        return { success: false, error: 'No content found in file' };
+      }
+
+      const content = Buffer.from(response.content, 'base64').toString('utf8');
+      return { success: true, data: content };
+    } catch (error) {
+      return { success: false, error: `Failed to read file: ${error.message}` };
+    }
   }
 
   async executeWrite(args) {
     const parts = this.parseArgs(args);
     if (parts.length < 2) {
-      return { success: false, error: 'Filename and content required' };
+      return { success: false, error: 'Both filename and content are required' };
     }
 
-    const [filename, ...contentParts] = parts;
-    const content = contentParts.join(' ');
-    
-    await push_files({
-      owner: 'AIWhisper',
-      repo: 'github-agent',
-      branch: 'main',
-      files: [{ path: filename, content }],
-      message: 'Update from chat interface'
-    });
-    
-    return { success: true, data: 'File written successfully' };
+    try {
+      const [filename, ...contentParts] = parts;
+      const content = contentParts.join(' ');
+      
+      await push_files({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        branch: this.config.branch,
+        files: [{ path: filename, content }],
+        message: `Update ${filename} via chat interface`
+      });
+      
+      return { 
+        success: true, 
+        data: `Successfully wrote to ${filename}`
+      };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: `Failed to write file: ${error.message}` 
+      };
+    }
   }
 
   async executeStatus() {
     return {
       success: true,
       data: {
-        repo: 'github-agent',
-        owner: 'AIWhisper',
-        branch: 'main',
+        repo: this.config.repo,
+        owner: this.config.owner,
+        branch: this.config.branch,
         ready: true
       }
     };
@@ -75,7 +97,24 @@ class ClaudeGitHubParser {
 
   parseArgs(argsString) {
     if (!argsString) return [];
-    return argsString.trim().split(/\s+/);
+    
+    const args = [];
+    let currentArg = '';
+    let inQuotes = false;
+
+    for (let char of argsString) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ' ' && !inQuotes) {
+        if (currentArg) args.push(currentArg);
+        currentArg = '';
+      } else {
+        currentArg += char;
+      }
+    }
+    if (currentArg) args.push(currentArg);
+
+    return args;
   }
 }
 

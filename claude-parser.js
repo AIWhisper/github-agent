@@ -63,7 +63,7 @@ class ClaudeGitHubParser {
       const [filename, ...contentParts] = parts;
       const content = contentParts.join(' ');
       
-      await push_files({
+      const result = await push_files({
         owner: this.config.owner,
         repo: this.config.repo,
         branch: this.config.branch,
@@ -71,10 +71,14 @@ class ClaudeGitHubParser {
         message: `Update ${filename} via chat interface`
       });
       
-      return { 
-        success: true, 
-        data: `Successfully wrote to ${filename}`
-      };
+      if (result?.ref) {
+        return { 
+          success: true, 
+          data: `Successfully wrote to ${filename}`
+        };
+      } else {
+        throw new Error('Push operation failed');
+      }
     } catch (error) {
       return { 
         success: false, 
@@ -118,7 +122,9 @@ class ClaudeGitHubParser {
   }
 }
 
-// For Node.js environments
+// Make available for both Node.js and browser environments
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ClaudeGitHubParser;
+} else if (typeof window !== 'undefined') {
+  window.ClaudeGitHubParser = ClaudeGitHubParser;
 }

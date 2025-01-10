@@ -6,28 +6,11 @@ class ClaudeGitHubParser {
       repo: 'github-agent',
       branch: 'main'
     };
-  }
-
-  async parseAndExecute(input) {
-    const match = input.match(this.commandRegex);
-    if (!match) return { success: false, error: 'Not a valid GitHub command' };
-
-    const [, command, args = ''] = match;
-    
-    try {
-      switch(command.toLowerCase()) {
-        case 'read':
-          return await this.executeRead(args.trim());
-        case 'write':
-          return await this.executeWrite(args);
-        case 'status':
-          return await this.executeStatus();
-        default:
-          return { success: false, error: `Unknown command: ${command}` };
-      }
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+    // Store function references
+    this.githubApi = {
+      push_files,
+      get_file_contents
+    };
   }
 
   async executeRead(filename) {
@@ -36,7 +19,7 @@ class ClaudeGitHubParser {
     }
 
     try {
-      const response = await get_file_contents({
+      const response = await this.githubApi.get_file_contents({
         owner: this.config.owner,
         repo: this.config.repo,
         path: filename
@@ -46,7 +29,7 @@ class ClaudeGitHubParser {
         return { success: false, error: 'No content found in file' };
       }
 
-      const content = Buffer.from(response.content, 'base64').toString('utf8');
+      const content = atob(response.content);
       return { success: true, data: content };
     } catch (error) {
       return { success: false, error: `Failed to read file: ${error.message}` };
@@ -63,7 +46,7 @@ class ClaudeGitHubParser {
       const [filename, ...contentParts] = parts;
       const content = contentParts.join(' ');
       
-      const result = await push_files({
+      const result = await this.githubApi.push_files({
         owner: this.config.owner,
         repo: this.config.repo,
         branch: this.config.branch,
@@ -101,30 +84,28 @@ class ClaudeGitHubParser {
 
   parseArgs(argsString) {
     if (!argsString) return [];
-    
-    const args = [];
-    let currentArg = '';
-    let inQuotes = false;
-
-    for (let char of argsString) {
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ' ' && !inQuotes) {
-        if (currentArg) args.push(currentArg);
-        currentArg = '';
-      } else {
-        currentArg += char;
-      }
-    }
-    if (currentArg) args.push(currentArg);
-
-    return args;
+    return argsString.trim().split(/\s+/);
   }
-}
 
-// Make available for both Node.js and browser environments
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ClaudeGitHubParser;
-} else if (typeof window !== 'undefined') {
-  window.ClaudeGitHubParser = ClaudeGitHubParser;
+  async parseAndExecute(input) {
+    const match = input.match(this.commandRegex);
+    if (!match) return { success: false, error: 'Not a valid GitHub command' };
+
+    const [, command, args = ''] = match;
+    
+    try {
+      switch(command.toLowerCase()) {
+        case 'read':
+          return await this.executeRead(args.trim());
+        case 'write':
+          return await this.executeWrite(args);
+        case 'status':
+          return await this.executeStatus();
+        default:
+          return { success: false, error: `Unknown command: ${command}` };
+      }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }

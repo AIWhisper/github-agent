@@ -24,11 +24,16 @@ class ChatGitHubIntegration {
           }
           const filename = args[0];
           const content = args.slice(1).join(' ');
+          
+          // Use exact push_files format from docs
           return await window.push_files({
             owner: this.config.owner,
             repo: this.config.repo,
             branch: this.config.branch,
-            files: [{ path: filename, content }],
+            files: [{
+              path: filename,
+              content: content
+            }],
             message: `Update ${filename} via chat`
           });
         }
@@ -57,7 +62,9 @@ class ChatGitHubIntegration {
           });
           return {
             success: true,
-            data: Array.isArray(response) ? response.map(f => f.name).join('\n') : []
+            data: Array.isArray(response) ? 
+              response.map(f => `${f.type === 'dir' ? '[DIR]' : ''}  ${f.path}`).join('\n') : 
+              []
           };
         }
 
@@ -66,6 +73,7 @@ class ChatGitHubIntegration {
             success: true,
             data: {
               repo: this.config.repo,
+              owner: this.config.owner,
               branch: this.config.branch,
               ready: true
             }
@@ -76,7 +84,10 @@ class ChatGitHubIntegration {
             return { success: false, error: 'Branch name required' };
           }
           this.config.branch = args[0];
-          return { success: true, data: { branch: args[0] }};
+          return { 
+            success: true, 
+            data: { branch: args[0] }
+          };
 
         default:
           return { 

@@ -1,53 +1,93 @@
 class ChatGitHubIntegration {
   constructor() {
-    this.githubService = require('./github-service');
-    this.config = require('./github-agent-config.json');
+    this.config = {
+      owner: 'AIWhisper',
+      repo: 'github-agent',
+      branch: 'main'
+    };
   }
 
-  async handleCommand(command) {
-    const parts = command.trim().split(' ');
-    const action = parts[0].toLowerCase();
+  async handleCommand(input) {
+    const parts = input.split(' ');
+    if (parts[0] !== 'github' && parts[0] !== 'gh') {
+      return { success: false, error: 'Command must start with github or gh' };
+    }
+
+    const command = parts[1]?.toLowerCase();
+    const args = parts.slice(2);
 
     try {
-      switch(action) {
-        case 'read':
-          return await this.githubService.getFile(parts[1]);
+      switch(command) {
+        case 'write': {
+          if (args.length < 2) {
+            return { success: false, error: 'Need filename and content' };
+          }
+          const filename = args[0];
+          const content = args.slice(1).join(' ');
+          return await window.push_files({
+            owner: this.config.owner,
+            repo: this.config.repo,
+            branch: this.config.branch,
+            files: [{ path: filename, content }],
+            message: `Update ${filename} via chat`
+          });
+        }
 
-        case 'write':
-          const filename = parts[1];
-          const content = parts.slice(2).join(' ');
-          return await this.githubService.pushFile(filename, content, 'Update from chat');
+        case 'read': {
+          if (!args[0]) {
+            return { success: false, error: 'Filename required' };
+          }
+          const response = await window.get_file_contents({
+            owner: this.config.owner,
+            repo: this.config.repo,
+            path: args[0]
+          });
+          return {
+            success: true,
+            data: Buffer.from(response.content, 'base64').toString('utf8')
+          };
+        }
 
-        case 'list':
-          return await this.githubService.getFile('');
+        case 'list': {
+          const path = args[0] || '.';
+          const response = await window.get_file_contents({
+            owner: this.config.owner,
+            repo: this.config.repo,
+            path
+          });
+          return {
+            success: true,
+            data: Array.isArray(response) ? response.map(f => f.name).join('\n') : []
+          };
+        }
 
         case 'status':
           return {
             success: true,
             data: {
-              repo: this.config.defaultRepo,
-              branch: this.config.defaultBranch,
+              repo: this.config.repo,
+              branch: this.config.branch,
               ready: true
             }
           };
 
         case 'branch':
-          this.config.defaultBranch = parts[1];
-          return {
-            success: true,
-            data: { branch: parts[1] }
-          };
+          if (!args[0]) {
+            return { success: false, error: 'Branch name required' };
+          }
+          this.config.branch = args[0];
+          return { success: true, data: { branch: args[0] }};
 
         default:
-          return {
-            success: false,
-            error: 'Unknown command. Available commands: read, write, list, status, branch'
+          return { 
+            success: false, 
+            error: 'Unknown command. Available: write, read, list, status, branch'
           };
       }
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: `Command failed: ${error.message}`
       };
     }
   }

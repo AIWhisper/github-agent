@@ -9,6 +9,56 @@ class GitHubService {
     };
   }
 
+  // Parameter validation utility
+  validateParams(params, schema) {
+    const errors = [];
+    
+    for (const [key, rules] of Object.entries(schema)) {
+      const value = params[key];
+      
+      // Required check
+      if (rules.required && (value === undefined || value === null)) {
+        errors.push(`${key} is required`);
+        continue;
+      }
+      
+      // Skip other validations if value is not provided and not required
+      if (value === undefined || value === null) {
+        continue;
+      }
+      
+      // Type check
+      if (rules.type && typeof value !== rules.type) {
+        errors.push(`${key} must be of type ${rules.type}`);
+      }
+      
+      // Pattern check
+      if (rules.pattern && !rules.pattern.test(value)) {
+        errors.push(`${key} must match pattern ${rules.pattern}`);
+      }
+      
+      // Min/Max check for numbers
+      if (typeof value === 'number') {
+        if (rules.min !== undefined && value < rules.min) {
+          errors.push(`${key} must be greater than or equal to ${rules.min}`);
+        }
+        if (rules.max !== undefined && value > rules.max) {
+          errors.push(`${key} must be less than or equal to ${rules.max}`);
+        }
+      }
+      
+      // Length check for strings and arrays
+      if (rules.minLength !== undefined && value.length < rules.minLength) {
+        errors.push(`${key} must have a minimum length of ${rules.minLength}`);
+      }
+      if (rules.maxLength !== undefined && value.length > rules.maxLength) {
+        errors.push(`${key} must have a maximum length of ${rules.maxLength}`);
+      }
+    }
+    
+    return errors;
+  }
+
   // Core retry mechanism with exponential backoff
   async retryOperation(operation, context) {
     let attempts = 0;
@@ -47,8 +97,42 @@ class GitHubService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Basic file operation with retry
+  // Basic file operation with retry and parameter validation
   async writeFile(path, content, message = null) {
+    // Validate parameters
+    const errors = this.validateParams({
+      path,
+      content,
+      message
+    }, {
+      path: {
+        required: true,
+        type: 'string',
+        minLength: 1,
+        pattern: /^[a-zA-Z0-9\-_/.]+$/
+      },
+      content: {
+        required: true,
+        type: 'string'
+      },
+      message: {
+        type: 'string',
+        minLength: 1
+      }
+    });
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        error: 'Parameter validation failed',
+        details: errors,
+        context: {
+          operation: 'writeFile',
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+
     try {
       return await this.retryOperation(async () => {
         await window.push_files({
@@ -80,20 +164,37 @@ class GitHubService {
     }
   }
 
-  // Configuration method for retry options
+  // Configuration method for retry options with validation
   setRetryOptions(maxRetries, retryDelay) {
-    if (maxRetries) {
-      if (typeof maxRetries !== 'number' || maxRetries < 1) {
-        throw new Error('maxRetries must be a positive number');
+    const errors = this.validateParams({
+      maxRetries,
+      retryDelay
+    }, {
+      maxRetries: {
+        type: 'number',
+        min: 1
+      },
+      retryDelay: {
+        type: 'number',
+        min: 0
       }
+    });
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        error: 'Parameter validation failed',
+        details: errors
+      };
+    }
+
+    if (maxRetries) {
       this.config.maxRetries = maxRetries;
     }
     if (retryDelay) {
-      if (typeof retryDelay !== 'number' || retryDelay < 0) {
-        throw new Error('retryDelay must be a non-negative number');
-      }
       this.config.retryDelay = retryDelay;
     }
+    
     return {
       success: true,
       data: {

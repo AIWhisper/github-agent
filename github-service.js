@@ -1,78 +1,116 @@
 class GitHubService {
   constructor() {
-    this.config = require('./github-agent-config.json');
-    this.defaultRepo = this.config.defaultRepo;
-    this.defaultOwner = this.config.defaultOwner;
-    this.defaultBranch = this.config.defaultBranch;
-  }
-
-  async pushFile(filename, content, message = 'Update file') {
-    return await this.pushFiles([{ path: filename, content }], message);
-  }
-
-  async pushFiles(files, message) {
-    return await this._withRetry(async () => {
-      const params = {
-        repo: this.defaultRepo,
-        owner: this.defaultOwner,
-        branch: this.defaultBranch,
-        files: files.map(file => ({
-          path: file.path,
-          content: file.content
-        })),
-        message: message
-      };
-      return await this._callGitHub('push_files', params);
-    });
-  }
-
-  async getFile(filename) {
-    return await this._withRetry(async () => {
-      const params = {
-        path: filename,
-        repo: this.defaultRepo,
-        owner: this.defaultOwner
-      };
-      const response = await this._callGitHub('get_file_contents', params);
-      if (response.content) {
-        return {
-          success: true,
-          data: Buffer.from(response.content, 'base64').toString('utf8')
-        };
-      }
-      throw new Error('File content not found');
-    });
-  }
-
-  async _withRetry(operation) {
-    let lastError;
-    for (let attempt = 1; attempt <= this.config.errorHandling.maxRetries; attempt++) {
-      try {
-        const result = await operation();
-        return { success: true, data: result };
-      } catch (error) {
-        lastError = error;
-        if (attempt < this.config.errorHandling.maxRetries) {
-          await new Promise(resolve => 
-            setTimeout(resolve, this.config.errorHandling.retryDelay * attempt)
-          );
-        }
-      }
-    }
-    return { success: false, error: lastError.message };
-  }
-
-  async _callGitHub(functionName, params) {
-    // Map of available GitHub API functions
-    const githubFunctions = {
-      'push_files': window.push_files,
-      'get_file_contents': window.get_file_contents
+    this.config = {
+      owner: 'AIWhisper',
+      repo: 'github-agent',
+      branch: 'main'
     };
+  }
 
-    if (typeof githubFunctions[functionName] === 'function') {
-      return await githubFunctions[functionName](params);
+  async getStatus() {
+    try {
+      const result = await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: '.'
+      });
+      
+      return {
+        success: true,
+        data: {
+          repo: this.config.repo,
+          owner: this.config.owner,
+          branch: this.config.branch,
+          ready: true
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Status check failed: ${error.message}`
+      };
     }
-    throw new Error(`GitHub function ${functionName} not available`);
+  }
+
+  async readFile(path) {
+    try {
+      const response = await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: path
+      });
+
+      if (!response?.content) {
+        throw new Error('No content found');
+      }
+
+      return {
+        success: true,
+        data: Buffer.from(response.content, 'base64').toString('utf8')
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to read ${path}: ${error.message}`
+      };
+    }
+  }
+
+  async writeFile(path, content) {
+    try {
+      const result = await window.push_files({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        branch: this.config.branch,
+        files: [{
+          path: path,
+          content: content
+        }],
+        message: `Update ${path} via GitHub agent`
+      });
+
+      return {
+        success: true,
+        data: `Successfully updated ${path}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to write ${path}: ${error.message}`
+      };
+    }
+  }
+
+  async listFiles(path = '.') {
+    try {
+      const response = await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: path
+      });
+
+      return {
+        success: true,
+        data: Array.isArray(response) ? response.map(f => ({
+          name: f.name,
+          type: f.type,
+          size: f.size
+        })) : []
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to list files: ${error.message}`
+      };
+    }
+  }
+
+  setBranch(branch) {
+    this.config.branch = branch;
+    return {
+      success: true,
+      data: { branch: branch }
+    };
   }
 }
 

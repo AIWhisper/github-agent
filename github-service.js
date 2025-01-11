@@ -203,6 +203,81 @@ class GitHubService {
       }
     };
   }
+
+  // Pull Request Operations
+  async mergePullRequest(prNumber, mergeMethod = 'merge') {
+    const errors = this.validateParams({
+      prNumber,
+      mergeMethod
+    }, {
+      prNumber: {
+        required: true,
+        type: 'number',
+        min: 1
+      },
+      mergeMethod: {
+        required: true,
+        type: 'string',
+        pattern: /^(merge|squash|rebase)$/
+      }
+    });
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        error: 'Parameter validation failed',
+        details: errors,
+        context: {
+          operation: 'mergePullRequest',
+          prNumber,
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+
+    try {
+      return await this.retryOperation(async () => {
+        // First, check if PR exists and can be merged
+        const prDetails = await window.get_issue({
+          owner: this.config.owner,
+          repo: this.config.repo,
+          issue_number: prNumber
+        });
+
+        if (!prDetails.pull_request) {
+          throw new Error(`Issue #${prNumber} is not a pull request`);
+        }
+
+        // Attempt to merge
+        const mergeResult = await window.merge_pull_request({
+          owner: this.config.owner,
+          repo: this.config.repo,
+          pull_number: prNumber,
+          merge_method: mergeMethod
+        });
+
+        return {
+          success: true,
+          data: {
+            message: `Successfully merged PR #${prNumber}`,
+            mergeCommitSha: mergeResult.sha,
+            method: mergeMethod
+          }
+        };
+      }, `merging PR #${prNumber}`);
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        context: {
+          operation: 'mergePullRequest',
+          prNumber,
+          mergeMethod,
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+  }
 }
 
 module.exports = new GitHubService();

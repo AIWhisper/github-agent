@@ -1,78 +1,144 @@
 class GitHubService {
   constructor() {
-    this.config = require('./github-agent-config.json');
-    this.defaultRepo = this.config.defaultRepo;
-    this.defaultOwner = this.config.defaultOwner;
-    this.defaultBranch = this.config.defaultBranch;
+    this.config = {
+      owner: 'AIWhisper',
+      repo: 'github-agent',
+      branch: 'main'
+    };
   }
 
-  async pushFile(filename, content, message = 'Update file') {
-    return await this.pushFiles([{ path: filename, content }], message);
-  }
+  // Core file operations
+  async readFile(path) {
+    try {
+      const response = await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: path
+      });
 
-  async pushFiles(files, message) {
-    return await this._withRetry(async () => {
-      const params = {
-        repo: this.defaultRepo,
-        owner: this.defaultOwner,
-        branch: this.defaultBranch,
-        files: files.map(file => ({
-          path: file.path,
-          content: file.content
-        })),
-        message: message
+      if (!response?.content) {
+        throw new Error('No content found');
+      }
+
+      return {
+        success: true,
+        data: Buffer.from(response.content, 'base64').toString('utf8')
       };
-      return await this._callGitHub('push_files', params);
-    });
+    } catch (error) {
+      return {
+        success: false,
+        error: `Read failed: ${error.message}`
+      };
+    }
   }
 
-  async getFile(filename) {
-    return await this._withRetry(async () => {
-      const params = {
-        path: filename,
-        repo: this.defaultRepo,
-        owner: this.defaultOwner
+  async writeFile(path, content, message = null) {
+    try {
+      const encodedContent = Buffer.from(content).toString('base64');
+      
+      const result = await window.push_files({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        branch: this.config.branch,
+        files: [{
+          path: path,
+          content: encodedContent,
+          encoding: 'base64'
+        }],
+        message: message || `Update ${path} via GitHub agent`
+      });
+
+      if (!result?.ref) {
+        throw new Error('Push operation failed');
+      }
+
+      return {
+        success: true,
+        data: `Successfully updated ${path}`
       };
-      const response = await this._callGitHub('get_file_contents', params);
-      if (response.content) {
+    } catch (error) {
+      return {
+        success: false,
+        error: `Write failed: ${error.message}`
+      };
+    }
+  }
+
+  // Directory operations
+  async listFiles(path = '.') {
+    try {
+      const response = await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: path
+      });
+
+      if (!Array.isArray(response)) {
         return {
           success: true,
-          data: Buffer.from(response.content, 'base64').toString('utf8')
+          data: []
         };
       }
-      throw new Error('File content not found');
-    });
+
+      return {
+        success: true,
+        data: response.map(f => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          path: f.path
+        }))
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `List failed: ${error.message}`
+      };
+    }
   }
 
-  async _withRetry(operation) {
-    let lastError;
-    for (let attempt = 1; attempt <= this.config.errorHandling.maxRetries; attempt++) {
-      try {
-        const result = await operation();
-        return { success: true, data: result };
-      } catch (error) {
-        lastError = error;
-        if (attempt < this.config.errorHandling.maxRetries) {
-          await new Promise(resolve => 
-            setTimeout(resolve, this.config.errorHandling.retryDelay * attempt)
-          );
+  // Repository operations
+  async getStatus() {
+    try {
+      await window.get_file_contents({
+        owner: this.config.owner,
+        repo: this.config.repo,
+        path: '.'
+      });
+
+      return {
+        success: true,
+        data: {
+          repo: this.config.repo,
+          owner: this.config.owner,
+          branch: this.config.branch,
+          ready: true
         }
-      }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Status check failed: ${error.message}`,
+        data: {
+          ready: false
+        }
+      };
     }
-    return { success: false, error: lastError.message };
   }
 
-  async _callGitHub(functionName, params) {
-    // Map of available GitHub API functions
-    const githubFunctions = {
-      'push_files': window.push_files,
-      'get_file_contents': window.get_file_contents
-    };
-
-    if (typeof githubFunctions[functionName] === 'function') {
-      return await githubFunctions[functionName](params);
+  setBranch(branch) {
+    if (!branch) {
+      return {
+        success: false,
+        error: 'Branch name required'
+      };
     }
-    throw new Error(`GitHub function ${functionName} not available`);
+
+    this.config.branch = branch;
+    return {
+      success: true,
+      data: { branch: branch }
+    };
   }
 }
 

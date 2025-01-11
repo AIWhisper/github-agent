@@ -1,8 +1,3 @@
-const { get_issue, add_issue_comment, update_issue } = require('./github-api');
-
-/**
- * Simple PR merge implementation using available endpoints
- */
 async function mergePullRequest({ owner, repo, pull_number }) {
   try {
     // Step 1: Check if PR exists and is open
@@ -12,10 +7,17 @@ async function mergePullRequest({ owner, repo, pull_number }) {
       issue_number: pull_number
     });
 
-    if (!pr || pr.state !== 'open') {
+    if (!pr) {
       return {
         success: false,
-        error: 'PR not found or not open'
+        error: 'Pull request not found'
+      };
+    }
+
+    if (pr.state !== 'open') {
+      return {
+        success: false,
+        error: 'Pull request is not open'
       };
     }
 
@@ -38,12 +40,13 @@ async function mergePullRequest({ owner, repo, pull_number }) {
     return {
       success: true,
       merged: true,
-      message: `PR #${pull_number} merged successfully`
+      message: `PR #${pull_number} merged successfully`,
+      pr: pr
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'Failed to merge PR',
       context: {
         operation: 'mergePullRequest',
         pr: pull_number
@@ -52,6 +55,40 @@ async function mergePullRequest({ owner, repo, pull_number }) {
   }
 }
 
+async function getPullRequestStatus({ owner, repo, pull_number }) {
+  try {
+    const pr = await get_issue({
+      owner,
+      repo,
+      issue_number: pull_number
+    });
+
+    if (!pr) {
+      return {
+        success: false,
+        error: 'Pull request not found'
+      };
+    }
+
+    return {
+      success: true,
+      pr: {
+        number: pr.number,
+        title: pr.title,
+        state: pr.state,
+        mergeable: pr.state === 'open',
+        url: pr.html_url
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Failed to fetch PR status'
+    };
+  }
+}
+
 module.exports = {
-  mergePullRequest
+  mergePullRequest,
+  getPullRequestStatus
 };

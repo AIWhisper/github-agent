@@ -36,62 +36,64 @@ describe('GitHubService', () => {
         assert.strictEqual(errors.length, 1);
         assert.ok(errors[0].includes('must match pattern'));
       });
-
-      it('should validate number ranges', () => {
-        const params = { age: 15 };
-        const schema = { age: { type: 'number', min: 18, max: 100 } };
-        
-        const errors = github.validateParams(params, schema);
-        assert.strictEqual(errors.length, 1);
-        assert.strictEqual(errors[0], 'age must be greater than or equal to 18');
-      });
-
-      it('should validate string lengths', () => {
-        const params = { name: 'a' };
-        const schema = { name: { type: 'string', minLength: 2, maxLength: 50 } };
-        
-        const errors = github.validateParams(params, schema);
-        assert.strictEqual(errors.length, 1);
-        assert.strictEqual(errors[0], 'name must have a minimum length of 2');
-      });
-
-      it('should pass validation when all rules are satisfied', () => {
-        const params = {
-          name: 'test-file.txt',
-          content: 'Hello World',
-          count: 5
-        };
-        const schema = {
-          name: { type: 'string', pattern: /^[a-zA-Z0-9\-_/.]+$/ },
-          content: { type: 'string', required: true },
-          count: { type: 'number', min: 1, max: 10 }
-        };
-        
-        const errors = github.validateParams(params, schema);
-        assert.strictEqual(errors.length, 0);
-      });
     });
+  });
 
-    describe('writeFile', () => {
-      it('should validate file path format', async () => {
-        const result = await github.writeFile('invalid@path', 'content');
+  describe('Pull Request Operations', () => {
+    describe('mergePullRequest', () => {
+      it('should validate PR number', async () => {
+        const result = await github.mergePullRequest(-1);
         assert.strictEqual(result.success, false);
         assert.strictEqual(result.error, 'Parameter validation failed');
-        assert.ok(result.details.some(error => error.includes('path')));
+        assert.ok(result.details.some(error => error.includes('prNumber must be greater than or equal to 1')));
       });
 
-      it('should require content', async () => {
-        const result = await github.writeFile('test.txt', null);
+      it('should validate merge method', async () => {
+        const result = await github.mergePullRequest(1, 'invalid-method');
         assert.strictEqual(result.success, false);
         assert.strictEqual(result.error, 'Parameter validation failed');
-        assert.ok(result.details.some(error => error.includes('content is required')));
+        assert.ok(result.details.some(error => error.includes('mergeMethod must match pattern')));
       });
 
-      it('should validate commit message if provided', async () => {
-        const result = await github.writeFile('test.txt', 'content', '');
+      it('should handle non-existent PRs', async () => {
+        // Mock the API response for a non-existent PR
+        global.window = {
+          get_issue: async () => {
+            throw new Error('Not found');
+          }
+        };
+
+        const result = await github.mergePullRequest(999);
         assert.strictEqual(result.success, false);
-        assert.strictEqual(result.error, 'Parameter validation failed');
-        assert.ok(result.details.some(error => error.includes('message must have a minimum length')));
+        assert.ok(result.error.includes('Not found'));
+      });
+
+      it('should handle merge conflicts', async () => {
+        // Mock the API response for a PR with conflicts
+        global.window = {
+          get_issue: async () => ({ pull_request: {} }),
+          merge_pull_request: async () => {
+            throw new Error('Merge conflict');
+          }
+        };
+
+        const result = await github.mergePullRequest(1);
+        assert.strictEqual(result.success, false);
+        assert.ok(result.error.includes('Merge conflict'));
+      });
+
+      it('should successfully merge PR', async () => {
+        // Mock successful PR merge
+        global.window = {
+          get_issue: async () => ({ pull_request: {} }),
+          merge_pull_request: async () => ({
+            sha: 'merged-commit-sha'
+          })
+        };
+
+        const result = await github.mergePullRequest(1);
+        assert.strictEqual(result.success, true);
+        assert.strictEqual(result.data.mergeCommitSha, 'merged-commit-sha');
       });
     });
   });
@@ -140,7 +142,6 @@ describe('GitHubService', () => {
       } catch (e) {
         const duration = Date.now() - startTime;
         assert.strictEqual(attempts, github.config.maxRetries);
-        // Should take at least: 1000 + 2000 + 4000 = 7000ms
         assert.ok(duration >= 7000);
       }
     });

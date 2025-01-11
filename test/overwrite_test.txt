@@ -1,1 +1,2 @@
-Initial content - version 1
+Modified content - version 2
+This line was added in the second version.

@@ -35,13 +35,6 @@ class GitHubService {
         await this.delay(waitTime);
         attempts++;
 
-        // Specific error handling based on status codes
-        if (error.status === 404) {
-          throw new Error(`Resource not found: ${context}`);
-        }
-        if (error.status === 403) {
-          throw new Error(`Access denied to ${context}. Check permissions.`);
-        }
         if (attempts === this.config.maxRetries) {
           throw new Error(`Operation failed after ${attempts} attempts: ${error.message}`);
         }
@@ -50,26 +43,15 @@ class GitHubService {
     throw lastError;
   }
 
-  // Utility for delay
   async delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Parameter validation utility
-  validateParams(params, required) {
-    const missing = required.filter(key => !params[key]);
-    if (missing.length > 0) {
-      throw new Error(`Missing required parameters: ${missing.join(', ')}`);
-    }
-  }
-
-  // Enhanced file operations with retry and validation
+  // Basic file operation with retry
   async writeFile(path, content, message = null) {
     try {
-      this.validateParams({ path, content }, ['path', 'content']);
-
       return await this.retryOperation(async () => {
-        const result = await window.push_files({
+        await window.push_files({
           owner: this.config.owner,
           repo: this.config.repo,
           branch: this.config.branch,
@@ -98,129 +80,27 @@ class GitHubService {
     }
   }
 
-  async readFile(path) {
-    try {
-      this.validateParams({ path }, ['path']);
-
-      return await this.retryOperation(async () => {
-        const response = await window.get_file_contents({
-          owner: this.config.owner,
-          repo: this.config.repo,
-          path: path
-        });
-
-        return {
-          success: true,
-          data: Buffer.from(response.content, 'base64').toString('utf8')
-        };
-      }, `reading file ${path}`);
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        context: {
-          operation: 'readFile',
-          path,
-          timestamp: new Date().toISOString()
-        }
-      };
+  // Configuration method for retry options
+  setRetryOptions(maxRetries, retryDelay) {
+    if (maxRetries) {
+      if (typeof maxRetries !== 'number' || maxRetries < 1) {
+        throw new Error('maxRetries must be a positive number');
+      }
+      this.config.maxRetries = maxRetries;
     }
-  }
-
-  async listFiles(path = '.') {
-    try {
-      return await this.retryOperation(async () => {
-        const response = await window.get_file_contents({
-          owner: this.config.owner,
-          repo: this.config.repo,
-          path: path
-        });
-
-        return {
-          success: true,
-          data: Array.isArray(response) ? response.map(f => ({
-            name: f.name,
-            type: f.type,
-            path: f.path
-          })) : []
-        };
-      }, `listing files in ${path}`);
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        context: {
-          operation: 'listFiles',
-          path,
-          timestamp: new Date().toISOString()
-        }
-      };
+    if (retryDelay) {
+      if (typeof retryDelay !== 'number' || retryDelay < 0) {
+        throw new Error('retryDelay must be a non-negative number');
+      }
+      this.config.retryDelay = retryDelay;
     }
-  }
-
-  getStatus() {
     return {
       success: true,
       data: {
-        ...this.config,
-        ready: true,
-        version: '1.1.0'
+        maxRetries: this.config.maxRetries,
+        retryDelay: this.config.retryDelay
       }
     };
-  }
-
-  setBranch(branch) {
-    try {
-      this.validateParams({ branch }, ['branch']);
-      this.config.branch = branch;
-      return { 
-        success: true, 
-        data: { branch } 
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        context: {
-          operation: 'setBranch',
-          timestamp: new Date().toISOString()
-        }
-      };
-    }
-  }
-
-  // Configuration methods
-  setRetryOptions(maxRetries, retryDelay) {
-    try {
-      if (maxRetries) {
-        if (typeof maxRetries !== 'number' || maxRetries < 1) {
-          throw new Error('maxRetries must be a positive number');
-        }
-        this.config.maxRetries = maxRetries;
-      }
-      if (retryDelay) {
-        if (typeof retryDelay !== 'number' || retryDelay < 0) {
-          throw new Error('retryDelay must be a non-negative number');
-        }
-        this.config.retryDelay = retryDelay;
-      }
-      return {
-        success: true,
-        data: {
-          maxRetries: this.config.maxRetries,
-          retryDelay: this.config.retryDelay
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        context: {
-          operation: 'setRetryOptions',
-          timestamp: new Date().toISOString()
-        }
-      };
-    }
   }
 }
 

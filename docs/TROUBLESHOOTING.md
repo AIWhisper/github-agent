@@ -19,4 +19,4 @@
 3. Test across different browsers
 
 ### Related Issues
-- Issue #6: Button Click Event Handler Not Responding
+- Issue #7: Button Click Event Handler Not Responding

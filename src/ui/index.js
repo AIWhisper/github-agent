@@ -1,0 +1,1 @@
+export { default as GitHubAgentInterface } from './components/GitHubAgentInterface';

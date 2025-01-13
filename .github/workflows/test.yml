@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_TOKEN }}
     
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -27,5 +29,5 @@ jobs:
       
     - name: Run integration tests
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: npm run test:integration

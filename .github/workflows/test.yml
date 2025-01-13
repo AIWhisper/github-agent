@@ -12,8 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        token: ${{ secrets.agent-test-token }}
     
     - name: Set up Node.js
       uses: actions/setup-node@v3

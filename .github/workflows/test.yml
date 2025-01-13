@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Prevents email notifications
+    permissions:
+      actions: read
 
     steps:
     - uses: actions/checkout@v3

@@ -1,1 +1,31 @@
-bmFtZTogVGVzdHMKCm9uOgogIHB1c2g6CiAgICBicmFuY2hlczogWyBtYWluIF0KICBwdWxsX3JlcXVlc3Q6CiAgICBicmFuY2hlczogWyBtYWluIF0KCmpvYnM6CiAgdGVzdDoKICAgIHJ1bnMtb246IHVidW50dS1sYXRlc3QKCiAgICBzdGVwczoKICAgIC0gdXNlczogYWN0aW9ucy9jaGVja291dEB2MwogICAgCiAgICAtIG5hbWU6IFNldCB1cCBOb2RlLmpzCiAgICAgIHVzZXM6IGFjdGlvbnMvc2V0dXAtbm9kZUB2MwogICAgICB3aXRoOgogICAgICAgIG5vZGUtdmVyc2lvbjogJzE4JwogICAgICAgIGNhY2hlOiAnbnBtJwogICAgICAgIAogICAgLSBuYW1lOiBJbnN0YWxsIGRlcGVuZGVuY2llcwogICAgICBydW46IG5wbSBpbnN0YWxsCiAgICAgIAogICAgLSBuYW1lOiBSdW4gdW5pdCB0ZXN0cwogICAgICBydW46IG5wbSB0ZXN0CiAgICAgIAogICAgLSBuYW1lOiBSdW4gaW50ZWdyYXRpb24gdGVzdHMKICAgICAgZW52OgogICAgICAgIEdJVEhVQl9UT0tFTjogJHt7IHNlY3JldHMuR0lUSFVCX1RPS0VOIH19CiAgICAgIHJ1bjogbnBtIHJ1biB0ZXN0OmludGVncmF0aW9u
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run unit tests
+      run: npm test
+      
+    - name: Run integration tests
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npm run test:integration

@@ -1,87 +1,69 @@
 # GitHub Agent
 
-A specialized GitHub operations service designed to be used by general AI agents for consistent and reliable GitHub interactions.
+A specialized agent designed to handle GitHub operations as part of a two-agent system. This agent communicates with a general agent that handles the UI and user interactions.
 
-## Purpose
+## Overview
 
-This agent provides a standardized interface for handling GitHub operations, making it easier for general AI agents to:
-- Execute GitHub operations consistently
-- Handle errors gracefully
-- Maintain state between operations
-- Get predictable response formats
+The GitHub Agent provides a clean interface for executing GitHub operations through standardized commands and responses. It implements the same set of GitHub functions available in the MCP tools.
 
-## Architecture
+## Core Components
 
-### 1. GitHub Service (`github-service.js`)
-Core service layer that handles:
-- Direct GitHub API interactions
-- Robust error handling
-- Retry mechanisms with exponential backoff
-- Operation state management
-- Standardized response formats
+### GitHubAgent
+The main interface that receives commands from the general agent and executes GitHub operations.
 
-```javascript
-// Example service usage
-const githubService = require('./github-service');
-
-// Operations return consistent response format
-const response = await githubService.writeFile('test.txt', 'content');
-// {
-//   success: true,
-//   data: "Successfully updated test.txt"
-// }
+```typescript
+const agent = new GitHubAgent();
+const response = await agent.executeCommand({
+  function: 'create_repository',
+  parameters: { name: 'test-repo' },
+  requestId: 'req-123'
+});
 ```
 
-### 2. Agent Interface (`src/ui/components/GitHubAgentInterface`)
-Provides a structured interface specification for:
-- Available commands (write, read, list, status)
-- Required inputs for each operation
-- Expected response formats
-- Error handling patterns
+### Supported Operations
 
-The interface component serves as both documentation and a contract for how general agents should interact with this specialized GitHub agent.
+The agent supports all GitHub operations available in the MCP tools:
+- `create_or_update_file`
+- `search_repositories`
+- `create_repository`
+- `get_file_contents`
+- `push_files`
+- `create_issue`
+- `create_pull_request`
+- And more...
 
-## Integration Guide
+## Command Format
 
-### For General Agents
-
-1. **Operation Types**
-   - `write`: Create or update files
-   - `read`: Retrieve file contents
-   - `list`: Get directory contents
-   - `status`: Check agent configuration
-
-2. **Response Format**
-```javascript
-{
-  success: boolean,
-  data?: any,
-  error?: string,
-  context?: {
-    operation: string,
-    timestamp: string,
-    ...additional context
-  }
+```typescript
+interface GitHubCommand {
+  function: GitHubFunction;  // The GitHub operation to execute
+  parameters: Record<string, any>;  // Operation-specific parameters
+  requestId: string;  // Unique identifier for the request
 }
 ```
 
-3. **Error Handling**
-   - All operations include built-in retries
-   - Exponential backoff for rate limits
-   - Detailed error context
-   - Consistent error response format
+## Response Format
 
-## Security
+```typescript
+interface GitHubResponse {
+  success: boolean;  // Operation success status
+  data?: any;  // Operation result data
+  error?: {  // Error information if operation failed
+    message: string;
+    details?: any;
+  };
+  requestId: string;  // Original request identifier
+}
+```
 
-- Scoped permissions
-- Configurable retry limits
-- Operation logging
-- Error tracing
+## Error Handling
 
-## Future Improvements
+The agent provides standardized error responses with detailed messages and maintains the requestId for tracking purposes.
 
-- [ ] Enhanced operation logging
-- [ ] Expanded GitHub API coverage
-- [ ] Configurable operation timeouts
-- [ ] Operation batching support
-- [ ] Advanced state persistence
+## Development
+
+This is part of Phase 5.1: Interface Development, focusing on:
+- Command reception
+- Response formatting
+- Error handling
+- GitHub API integration

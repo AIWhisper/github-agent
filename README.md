@@ -39,7 +39,58 @@ Provides a structured interface specification for:
 - Expected response formats
 - Error handling patterns
 
-The interface component serves as both documentation and a contract for how general agents should interact with this specialized GitHub agent.
+## Local Development Setup
+
+1. **Prerequisites**
+   - Node.js (v16 or higher)
+   - npm or yarn
+   - GitHub personal access token with required permissions
+
+2. **Environment Configuration**
+   ```bash
+   cp .env.example .env
+   # Add your GitHub token and other configuration
+   ```
+
+3. **Installation**
+   ```bash
+   npm install
+   ```
+
+4. **Running Tests**
+   ```bash
+   # Unit tests
+   npm run test:unit
+   
+   # Integration tests
+   npm run test:integration
+   
+   # All tests
+   npm test
+   ```
+
+## Testing Infrastructure
+
+### Unit Tests
+- Located in `tests/unit/`
+- Focus on individual component functionality
+- Mock external dependencies
+- Fast execution for rapid development
+
+### Integration Tests
+- Located in `tests/integration/`
+- Test complete operation workflows
+- Require GitHub API access
+- Include automatic cleanup
+- Default timeout: 30 seconds
+- Support for parallel test execution
+
+### Test Utilities
+- Unique test identifiers for isolation
+- Automatic resource cleanup
+- Environment validation
+- Configurable timeouts
+- Helper functions for common operations
 
 ## Integration Guide
 
@@ -77,6 +128,7 @@ The interface component serves as both documentation and a contract for how gene
 - Configurable retry limits
 - Operation logging
 - Error tracing
+- Environment-based configuration
 
 ## Future Improvements
 
@@ -85,3 +137,6 @@ The interface component serves as both documentation and a contract for how gene
 - [ ] Configurable operation timeouts
 - [ ] Operation batching support
 - [ ] Advanced state persistence
+- [ ] Additional integration test scenarios
+- [ ] Performance benchmarking tools
+- [ ] GitHub Actions workflow templates

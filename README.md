@@ -1,1 +1,142 @@
-IyBHaXRIdWIgQWdlbnQKCkEgc3BlY2lhbGl6ZWQgR2l0SHViIG9wZXJhdGlvbnMgc2VydmljZSBkZXNpZ25lZCB0byBiZSB1c2VkIGJ5IGdlbmVyYWwgQUkgYWdlbnRzIGZvciBjb25zaXN0ZW50IGFuZCByZWxpYWJsZSBHaXRIdWIgaW50ZXJhY3Rpb25zLgoKIyMgUHVycG9zZQoKVGhpcyBhZ2VudCBwcm92aWRlcyBhIHN0YW5kYXJkaXplZCBpbnRlcmZhY2UgZm9yIGhhbmRsaW5nIEdpdEh1YiBvcGVyYXRpb25zLCBtYWtpbmcgaXQgZWFzaWVyIGZvciBnZW5lcmFsIEFJIGFnZW50cyB0bzoKLSBFeGVjdXRlIEdpdEh1YiBvcGVyYXRpb25zIGNvbnNpc3RlbnRseQotIEhhbmRsZSBlcnJvcnMgZ3JhY2VmdWxseQotIE1haW50YWluIHN0YXRlIGJldHdlZW4gb3BlcmF0aW9ucwotIEdldCBwcmVkaWN0YWJsZSByZXNwb25zZSBmb3JtYXRzCgojIyBBcmNoaXRlY3R1cmUKCiMjIyAxLiBHaXRIdWIgU2VydmljZSAoYGdpdGh1Yi1zZXJ2aWNlLmpzYCkKQ29yZSBzZXJ2aWNlIGxheWVyIHRoYXQgaGFuZGxlczoKLSBEaXJlY3QgR2l0SHViIEFQSSBpbnRlcmFjdGlvbnMKLSBSb2J1c3QgZXJyb3IgaGFuZGxpbmcKLSBSZXRyeSBtZWNoYW5pc21zIHdpdGggZXhwb25lbnRpYWwgYmFja29mZgotIE9wZXJhdGlvbiBzdGF0ZSBtYW5hZ2VtZW50Ci0gU3RhbmRhcmRpemVkIHJlc3BvbnNlIGZvcm1hdHMKCmBgYGphdmFzY3JpcHQKLy8gRXhhbXBsZSBzZXJ2aWNlIHVzYWdlCmNvbnN0IGdpdGh1YlNlcnZpY2UgPSByZXF1aXJlKCcuL2dpdGh1Yi1zZXJ2aWNlJyk7CgovLyBPcGVyYXRpb25zIHJldHVybiBjb25zaXN0ZW50IHJlc3BvbnNlIGZvcm1hdApjb25zdCByZXNwb25zZSA9IGF3YWl0IGdpdGh1YlNlcnZpY2Uud3JpdGVGaWxlKCd0ZXN0LnR4dCcsICdjb250ZW50Jyk7Ci8vIHsKLy8gICBzdWNjZXNzOiB0cnVlLAovLyAgIGRhdGE6ICJTdWNjZXNzZnVsbHkgdXBkYXRlZCB0ZXN0LnR4dCIKLy8gfQpgYGAKCiMjIyAyLiBBZ2VudCBJbnRlcmZhY2UgKGBzcmMvdWkvY29tcG9uZW50cy9HaXRIdWJBZ2VudEludGVyZmFjZWApClByb3ZpZGVzIGEgc3RydWN0dXJlZCBpbnRlcmZhY2Ugc3BlY2lmaWNhdGlvbiBmb3I6Ci0gQXZhaWxhYmxlIGNvbW1hbmRzICh3cml0ZSwgcmVhZCwgbGlzdCwgc3RhdHVzKQotIFJlcXVpcmVkIGlucHV0cyBmb3IgZWFjaCBvcGVyYXRpb24KLSBFeHBlY3RlZCByZXNwb25zZSBmb3JtYXRzCi0gRXJyb3IgaGFuZGxpbmcgcGF0dGVybnMKCiMjIExvY2FsIERldmVsb3BtZW50IFNldHVwCgoxLiAqKlByZXJlcXVpc2l0ZXMqKgogICAtIE5vZGUuanMgKHYxNiBvciBoaWdoZXIpCiAgIC0gbnBtIG9yIHlhcm4KICAgLSBHaXRIdWIgcGVyc29uYWwgYWNjZXNzIHRva2VuIHdpdGggcmVxdWlyZWQgcGVybWlzc2lvbnMKCjIuICoqRW52aXJvbm1lbnQgQ29uZmlndXJhdGlvbioqCiAgIGBgYGJhc2gKICAgY3AgLmVudi5leGFtcGxlIC5lbnYKICAgIyBBZGQgeW91ciBHaXRIdWIgdG9rZW4gYW5kIG90aGVyIGNvbmZpZ3VyYXRpb24KICAgYGBgCgozLiAqKkluc3RhbGxhdGlvbioqCiAgIGBgYGJhc2gKICAgbnBtIGluc3RhbGwKICAgYGBgCgo0LiAqKlJ1bm5pbmcgVGVzdHMqKgogICBgYGBiYXNoCiAgICMgVW5pdCB0ZXN0cwogICBucG0gcnVuIHRlc3Q6dW5pdAogICAKICAgIyBJbnRlZ3JhdGlvbiB0ZXN0cwogICBucG0gcnVuIHRlc3Q6aW50ZWdyYXRpb24KICAgCiAgICMgQWxsIHRlc3RzCiAgIG5wbSB0ZXN0CiAgIGBgYAoKIyMgVGVzdGluZyBJbmZyYXN0cnVjdHVyZQoKIyMjIFVuaXQgVGVzdHMKLSBMb2NhdGVkIGluIGB0ZXN0cy91bml0L2AKLTBGB2N1cyBvbiBpbmRpdmlkdWFsIGNvbXBvbmVudCBmdW5jdGlvbmFsaXR5Ci0gTW9jayBleHRlcm5hbCBkZXBlbmRlbmNpZXMKLSBGYXN0IGV4ZWN1dGlvbiBmb3IgcmFwaWQgZGV2ZWxvcG1lbnQKCiMjIyBJbnRlZ3JhdGlvbiBUZXN0cwotIExvY2F0ZWQgaW4gYHRlc3RzL2ludGVncmF0aW9uL2AKLSBUZXN0IGNvbXBsZXRlIG9wZXJhdGlvbiB3b3JrZmxvd3MKLSBSZXF1aXJlIEdpdEh1YiBBUEkgYWNjZXNzCi0gSW5jbHVkZSBhdXRvbWF0aWMgY2xlYW51cAotIERlZmF1bHQgdGltZW91dDogMzAgc2Vjb25kcwotIFN1cHBvcnQgZm9yIHBhcmFsbGVsIHRlc3QgZXhlY3V0aW9uCgojIyMgVGVzdCBVdGlsaXRpZXMKLSBVbmlxdWUgdGVzdCBpZGVudGlmaWVycyBmb3IgaXNvbGF0aW9uCi0gQXV0b21hdGljIHJlc291cmNlIGNsZWFudXAKLSBFbnZpcm9ubWVudCB2YWxpZGF0aW9uCi0gQ29uZmlndXJhYmxlIHRpbWVvdXRzCi0gSGVscGVyIGZ1bmN0aW9ucyBmb3IgY29tbW9uIG9wZXJhdGlvbnMKCiMjIEludGVncmF0aW9uIEd1aWRlCgojIyMgRm9yIEdlbmVyYWwgQWdlbnRzCgoxLiAqKk9wZXJhdGlvbiBUeXBlcyoqCiAgIC0gYHdyaXRlYDogQ3JlYXRlIG9yIHVwZGF0ZSBmaWxlcwogICAtIGByZWFkYDogUmV0cmlldmUgZmlsZSBjb250ZW50cwogICAtIGBsaXN0YDogR2V0IGRpcmVjdG9yeSBjb250ZW50cwogICAtIGBzdGF0dXNgOiBDaGVjayBhZ2VudCBjb25maWd1cmF0aW9uCgoyLiAqKlJlc3BvbnNlIEZvcm1hdCoqCmBgYGphdmFzY3JpcHQKewogIHN1Y2Nlc3M6IGJvb2xlYW4sCiAgZGF0YT86IGFueSwKICBlcnJvcj86IHN0cmluZywKICBjb250ZXh0PzogewogICAgb3BlcmF0aW9uOiBzdHJpbmcsCiAgICB0aW1lc3RhbXA6IHN0cmluZywKICAgIC4uLmFkZGl0aW9uYWwgY29udGV4dAogIH0KfQpgYGAKCjMuICoqRXJyb3IgSGFuZGxpbmcqKgogICAtIEFsbCBvcGVyYXRpb25zIGluY2x1ZGUgYnVpbHQtaW4gcmV0cmllcwogICAtIEV4cG9uZW50aWFsIGJhY2tvZmYgZm9yIHJhdGUgbGltaXRzCiAgIC0gRGV0YWlsZWQgZXJyb3IgY29udGV4dAogICAtIENvbnNpc3RlbnQgZXJyb3IgcmVzcG9uc2UgZm9ybWF0CgojIyBTZWN1cml0eQoKLSBTY29wZWQgcGVybWlzc2lvbnMKLSBDb25maWd1cmFibGUgcmV0cnkgbGltaXRzCi0gT3BlcmF0aW9uIGxvZ2dpbmcKLSBFcnJvciB0cmFjaW5nCi0gRW52aXJvbm1lbnQtYmFzZWQgY29uZmlndXJhdGlvbgoKIyMgRnV0dXJlIEltcHJvdmVtZW50cwoKLSBbIF0gRW5oYW5jZWQgb3BlcmF0aW9uIGxvZ2dpbmcKLSBbIF0gRXhwYW5kZWQgR2l0SHViIEFQSSBjb3ZlcmFnZQotIFsgXSBDb25maWd1cmFibGUgb3BlcmF0aW9uIHRpbWVvdXRzCi0gWyBdIE9wZXJhdGlvbiBiYXRjaGluZyBzdXBwb3J0Ci0gWyBdIEFkdmFuY2VkIHN0YXRlIHBlcnNpc3RlbmNlCi0gWyBdIEFkZGl0aW9uYWwgaW50ZWdyYXRpb24gdGVzdCBzY2VuYXJpb3MKLSBbIF0gUGVyZm9ybWFuY2UgYmVuY2htYXJraW5nIHRvb2xzCi0gWyBdIEdpdEh1YiBBY3Rpb25zIHdvcmtmbG93IHRlbXBsYXRlcw==
+# GitHub Agent
+
+A specialized GitHub operations service designed to be used by general AI agents for consistent and reliable GitHub interactions.
+
+## Purpose
+
+This agent provides a standardized interface for handling GitHub operations, making it easier for general AI agents to:
+- Execute GitHub operations consistently
+- Handle errors gracefully
+- Maintain state between operations
+- Get predictable response formats
+
+## Architecture
+
+### 1. GitHub Service (`github-service.js`)
+Core service layer that handles:
+- Direct GitHub API interactions
+- Robust error handling
+- Retry mechanisms with exponential backoff
+- Operation state management
+- Standardized response formats
+
+```javascript
+// Example service usage
+const githubService = require('./github-service');
+
+// Operations return consistent response format
+const response = await githubService.writeFile('test.txt', 'content');
+// {
+//   success: true,
+//   data: "Successfully updated test.txt"
+// }
+```
+
+### 2. Agent Interface (`src/ui/components/GitHubAgentInterface`)
+Provides a structured interface specification for:
+- Available commands (write, read, list, status)
+- Required inputs for each operation
+- Expected response formats
+- Error handling patterns
+
+## Local Development Setup
+
+1. **Prerequisites**
+   - Node.js (v16 or higher)
+   - npm or yarn
+   - GitHub personal access token with required permissions
+
+2. **Environment Configuration**
+   ```bash
+   cp .env.example .env
+   # Add your GitHub token and other configuration
+   ```
+
+3. **Installation**
+   ```bash
+   npm install
+   ```
+
+4. **Running Tests**
+   ```bash
+   # Unit tests
+   npm run test:unit
+   
+   # Integration tests
+   npm run test:integration
+   
+   # All tests
+   npm test
+   ```
+
+## Testing Infrastructure
+
+### Unit Tests
+- Located in `tests/unit/`
+- Focus on individual component functionality
+- Mock external dependencies
+- Fast execution for rapid development
+
+### Integration Tests
+- Located in `tests/integration/`
+- Test complete operation workflows
+- Require GitHub API access
+- Include automatic cleanup
+- Default timeout: 30 seconds
+- Support for parallel test execution
+
+### Test Utilities
+- Unique test identifiers for isolation
+- Automatic resource cleanup
+- Environment validation
+- Configurable timeouts
+- Helper functions for common operations
+
+## Integration Guide
+
+### For General Agents
+
+1. **Operation Types**
+   - `write`: Create or update files
+   - `read`: Retrieve file contents
+   - `list`: Get directory contents
+   - `status`: Check agent configuration
+
+2. **Response Format**
+```javascript
+{
+  success: boolean,
+  data?: any,
+  error?: string,
+  context?: {
+    operation: string,
+    timestamp: string,
+    ...additional context
+  }
+}
+```
+
+3. **Error Handling**
+   - All operations include built-in retries
+   - Exponential backoff for rate limits
+   - Detailed error context
+   - Consistent error response format
+
+## Security
+
+- Scoped permissions
+- Configurable retry limits
+- Operation logging
+- Error tracing
+- Environment-based configuration
+
+## Future Improvements
+
+- [ ] Enhanced operation logging
+- [ ] Expanded GitHub API coverage
+- [ ] Configurable operation timeouts
+- [ ] Operation batching support
+- [ ] Advanced state persistence
+- [ ] Additional integration test scenarios
+- [ ] Performance benchmarking tools
+- [ ] GitHub Actions workflow templates
